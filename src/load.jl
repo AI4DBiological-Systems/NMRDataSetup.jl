@@ -322,12 +322,3 @@ function getinitalguessreferencecompoundfreq(CAR::T, fs::T, SW::T) where T <: Re
     return ν0_initial, hz2ppmfunc0, ppm2hzfunc0
 end
 
-function evalcomplexLorentzian(u, α, β::T, λ, Ω)::Complex{T} where T <: Real
-    return α*exp(im*β)/(λ + im*(2*π*u - Ω))
-end
-
-function gettimerange(N::Int, fs::T) where T
-    Ts::T = 1/fs
-
-    return zero(T):Ts:(N-1)*Ts
- end
