@@ -13,7 +13,7 @@ PyPlot.matplotlib["rcParams"][:update](["font.size" => 22, "font.family" => "ser
 
 ### user inputs.
 save_dir = "/home/roy/MEGAsync/outputs/NMR/combined/"
-project_name = "cal01"
+project_name = "experiment01"
 
 experiment_full_path = "/home/roy/Documents/data/NMR/NMRData/combination/BMRB-700/D-(+)-Glucose"
 solvent_ppm_guess = 4.7
@@ -35,7 +35,6 @@ isdir(save_folder_path) || mkdir(save_folder_path); # make save folder if it doe
 save_path = joinpath(save_folder_path, "$(project_name).bson")
 BSON.bson(save_path,
 s_t = s_t,
-molecule_names = target_names,
 fs = fs,
 SW = SW,
 ν_0ppm = ν_0ppm)
