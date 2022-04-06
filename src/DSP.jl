@@ -8,6 +8,14 @@ function gettimerange(N::Int, fs::T) where T
     return zero(T):Ts:(N-1)*Ts
 end
 
+function getwraparoundDFTfreqs(N::Int, fs::T, ν_begin::T) where T
+
+    U0 = getDFTfreqrange(N, fs)
+    out, inds = wrapfreqrange(U0, ν_begin, fs)
+
+    return U0, out, inds
+end
+
 # Assumes U0 is sorted in ascending order.
 function wrapfreqrange(U0, ν_begin::T, fs::T) where T <: Real
 
