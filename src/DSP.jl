@@ -8,7 +8,37 @@ function gettimerange(N::Int, fs::T) where T
     return zero(T):Ts:(N-1)*Ts
 end
 
+# Assumes U0 is sorted in ascending order.
+function wrapfreqrange(U0, ν_begin::T, fs::T) where T <: Real
 
+    N = length(U0)
+    ind = findfirst(xx->(xx>ν_begin), U0)
+
+    # TODO handle these exceptions with more grace.
+    @assert typeof(ind) == Int
+    @assert ind <= N
+
+    out = Vector{T}(undef, N)
+    #out[1:ind] = U0[1:ind] .+ fs
+    #out[ind+1:end] = U0[ind+1:end]
+
+    M = N-ind
+    out[1:M] = U0[ind+1:end]
+    out[M+1:end] = U0[1:ind] .+ fs
+
+    inds = collect(1:N)
+    inds[1:M] = collect(ind+1:N)
+    inds[M+1:end] = collect(1:ind)
+
+    return out, inds
+end
+
+function getDFTfreqrange(N::Int, fs::T)::LinRange{T} where T
+    a = zero(T)
+    b = fs-fs/N
+
+    return LinRange(a, b, N)
+end
 
   # case 1D.
 function computeDTFTch3eq29(h, u::T, Λ)::Complex{T} where T <: Real
