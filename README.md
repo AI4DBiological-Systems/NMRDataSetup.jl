@@ -8,3 +8,6 @@ This package extracts from a Bruker 1D 1H NMR experiment the following:
 Given multiple experiments, this package also additively (in a weighted manner for each experiment) combines the experiments to get a single experiment. It is up to the user to ensure that the input experiments have the same `fs` and `SW`, otherwise the output won't be a realistic NMR spectrum. This combination is referred to as weighted mixing.
 
 See the two scripts in `./examples` for a demo of these two tasks.
+
+# Non-Julia Dependencies
+Make sure the [nmrglue](https://www.nmrglue.com/) Python 3 package is installed on your system. In linux, you can try the terminal command `pip install nmrglue --user` to install this package.
