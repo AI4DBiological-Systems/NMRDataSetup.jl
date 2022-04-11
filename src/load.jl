@@ -48,6 +48,63 @@ function loadBrukerfolderautophase(full_path::String)
             guess_udic
 end
 
+"""
+    loadspectrum(full_path::String;
+        solvent_ppm = 4.8,
+        solvent_window_ppm = 0.3,
+        N_Ω::Int = 20000,
+        N_optim::Int = 1000,
+        n_particles::Int = 3,
+        max_iters::Int = 100,
+        α_lower = 1e-6,
+        α_upper_factor = 50.0,
+        λ_lower = 1e-10,
+        λ_upper = 20.0,
+        λ_initial = 3.0,
+        st_ind_default = 100,
+        verbose_flag::Bool = false)
+
+Loads a Bruker 1D 1H NMR experiment. Uses the NMRGlue Python library. Estimates the 0 ppm and solvent resonance components. The solvent resonance component is estimated in the frequency interval `solvent_ppm` +/- `solvent_window_ppm`, in units ppm. 
+
+
+On a Linux terminal, run the following command if you don't have NMRGlue installed.
+pip install nmrglue --user
+
+Notes:
+Either `st_ind_default` samples or `dead_time_st` number of samples are removed from the raw time-domain data to create the output time-domain data, s_t. This is to remove the silence at the beginning of the acquired data due to the dead-time property of practical NMR spectrometers. 'dead_time_st' is calculated automatically from the metadata of the experiment files.
+
+Therefore, the returned sampling frequency `fs` from loadspectrum() and the sampling frequency in the returned metadata ditionary `dic` are slightly different.
+
+...
+# Outputs, in the order returned.
+
+- `s_t::Vector{Complex{Float64}}`: time-domain experiment data.
+- `S::Function`: Discrete-time Fourier transform of s_t.
+- `hz2ppmfunc::Function`: conversion function from Hz to ppm for this experiment. The formula used is `hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs`.
+- `ppm2hzfunc::Function`: conversion function from ppm to Hz for this experiment. The formula used is `ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)`.
+
+- `ν_0ppm::Float64`: where the estimated frequency of the 0 ppm resonance component, in Hz.
+- `fs::Float64`: the estimated sampling frequency of `s_t`.
+- `SW::Float64`: the spectral window of the spectrometer, as provided by the metadata of the experiment. In units of ppm.
+- `α_0ppm`: The amplitude parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `β_0ppm`: The phase parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `λ_0ppm`: The T2 parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `Ω_0ppm`: The radial frequency parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model. In units Hz/(2*π).
+- `results_0ppm`: The NLopt.jl optimization results for the estimation of the 0 ppm reference. Inspect this to see if the estimated parameters for the 0 ppm reference are reliable.
+
+- `dic`; The dictionary that contains all metadata from NMRGlue for the NMR experiment.
+
+- `α_solvent`: The amplitude parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `β_solvent`: The phase parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `λ_solvent`: The T2 parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model.
+- `Ω_solvent`: The radial frequency parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model. In units Hz/(2*π).
+- `results_solvent`: The NLopt.jl optimization results for the estimation of the 0 ppm reference. Inspect this to see if the estimated parameters for the 0 ppm reference are reliable.
+, , , , ,
+    
+
+# Examples
+See load_experiment.jl in the /examples folder for an example.
+"""
 function loadspectrum(full_path::String;
     solvent_ppm = 4.8,
     solvent_window_ppm = 0.3,
@@ -60,6 +117,7 @@ function loadspectrum(full_path::String;
     λ_lower = 1e-10,
     λ_upper = 20.0,
     λ_initial = 3.0,
+    st_ind_default = 100, # future: see if we can derive this from DE dead time later.
     verbose_flag::Bool = false)
 
     dic, data, precorr_time, precorr_frq0, precorr_frq, postcorr_frq0, postcorr_frq1,
@@ -97,10 +155,8 @@ function loadspectrum(full_path::String;
     AQ = TD/(2*SW*SFO1)
     dead_time = t_data[end] - AQ
 
-    st_ind0 = round(Int, dead_time/t_data[end] * length(data))
-
-    st_ind_default = 100 # future: see if we can derive this from DE dead time later.
-    st_ind = max(st_ind_default, st_ind0)
+    dead_time_st = round(Int, dead_time/t_data[end] * length(data))
+    st_ind = max(st_ind_default, dead_time_st)
 
     s_t = data[st_ind:end]
     t = gettimerange(length(s_t), fs_dic)
@@ -151,8 +207,7 @@ function loadspectrum(full_path::String;
 
 
     return s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0ppm,
-    results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent,
-    results_solvent
+    results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent, results_solvent
 end
 
 function estimatereferencecompoundfreq( CAR::T,

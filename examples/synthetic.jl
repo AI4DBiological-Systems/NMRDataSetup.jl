@@ -1,6 +1,8 @@
 ### load a few 700 MHz BMRB experiments, each with a known concentration.
 # combine them into a single FID.
 
+# Given multiple experiments, this package also additively (in a weighted manner for each experiment) combines the experiments to get a single experiment. It is up to the user to ensure that the input experiments have the same `fs` and `SW`, otherwise the output won't be a realistic NMR spectrum. This combination is referred to as weighted mixing.
+
 import NMRData
 
 

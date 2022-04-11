@@ -7,4 +7,6 @@ include("DSP.jl")
 include("load.jl")
 include("assemble_mixture.jl")
 
+export loadspectrum, getwraparoundDFTfreqs, evalcomplexLorentzian, gettimerange
+
 end
