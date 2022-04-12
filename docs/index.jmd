@@ -1,0 +1,160 @@
+# Example: load and store a Bruker 1D 1H NMR experiment
+
+Follows `load_experiment.jl` in the examples folder. Stores the loaded experiment as Julia objects in the binary JSON file format via BSON.jl.
+
+
+### Preparation
+To install `NMRDataSetup.jl`, do the following in the Julia REPL:
+```
+import Pkg
+Pkg.add(path="https://github.com/AI4DBiological-Systems/NMRDataSetup.jl")
+```
+
+To install NMRGlue, do `pip install nmrglue --user` from your terminal.
+
+Download the NMRData data repository at [https://github.com/AI4DBiological-Systems/NMRData](https://github.com/AI4DBiological-Systems/NMRData).
+
+To install the other Julia libraries used in this example, do the following in the Julia REPL:
+```
+import Pkg
+Pkg.add("FFTW")
+Pkg.add("PlotlyJS")
+Pkg.add("Plots")
+Pkg.add("BSON")
+```
+
+### Code
+Load required packages and set up random seed.
+```julia; results="hidden"
+
+import NMRDataSetup
+
+using FFTW
+import PlotlyJS
+import BSON
+
+using Plots; plotly()
+```
+
+The user needs to specify the following:
+```julia; results="hidden"
+### user inputs.
+
+experiment_full_path = "/home/roy/Documents/repo/NMRData/combination/BMRB-700/D-(+)-Glucose" # where the Bruker experiment data folder is located.
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments" # where to store the loaded experiment objects.
+project_name = "glucose-700" # project folder name within `save_dir` for this experiment.
+
+solvent_ppm_guess = 4.7 # where the solvent's peak frequency might be. In units of ppm.
+solvent_window_ppm = 0.1 # This library will try to search for a resonance component +/- `solvent_window_ppm` about `solvent_ppm_guess`.
+
+### end inputs.
+
+```
+
+Load & store:
+```julia; results="hidden"
+## load.
+s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0ppm,
+    results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent,
+    results_solvent = NMRDataSetup.loadspectrum(experiment_full_path;
+    solvent_ppm = solvent_ppm_guess,
+    solvent_window_ppm = solvent_window_ppm)
+
+## store.
+save_folder_path = joinpath(save_dir, project_name)
+isdir(save_folder_path) || mkpath(save_folder_path); # make save folder if it doesn't exist.
+
+save_path = joinpath(save_folder_path, "$(project_name).bson")
+BSON.bson(save_path,
+s_t = s_t,
+fs = fs,
+SW = SW,
+ν_0ppm = ν_0ppm,
+α_0ppm = α_0ppm,
+β_0ppm = β_0ppm,
+λ_0ppm = λ_0ppm)
+```
+
+Visualize real part of the spectrum of `s_t`, and overlay the estimated 0 ppm resonance component.
+```julia; fig_cap="", echo=false
+
+## visualize.
+hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
+ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)
+
+offset_Hz = ν_0ppm - (ppm2hzfunc(0.3)-ppm2hzfunc(0.0))
+
+N = length(s_t)
+DFT_s = fft(s_t)
+U_DFT, U_y, U_inds = NMRDataSetup.getwraparoundDFTfreqs(N, fs, offset_Hz)
+
+# shift the DFT so that around 0 ppm (around `offset_Hz` Hz`) appears first in the frequency positions.
+S_U = DFT_s[U_inds]
+P_y = hz2ppmfunc.(U_y)
+
+
+
+q = uu->NMRDataSetup.evalcomplexLorentzian(uu, α_0ppm, β_0ppm, λ_0ppm, 2*π*ν_0ppm)*fs
+q_U = q.(U_y)
+
+display_mat = [ real.(S_U) real.(q_U) ]
+display_labels = ["data" "estimated component"]
+
+default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
+tickfont = (12, :black))
+plot_handle = plot(P_y, display_mat,
+labels = display_labels,
+title = "real part of data spectrum (shifted Discrete Fourier Transform)",
+xlabel = "ppm",
+ylabel = "real part of spectrum",
+xflip = true,
+linewidth = 2, legend = :topright, size = (1000,400))
+
+display(plot_handle)
+
+```
+
+Try zooming in around the 0 ppm resonance component. Each data point is the discrete-Fourier transform (DFT) of the complex-valued NMR experiment data `s_t`.
+
+```julia; fig_cap="", echo=false
+
+inds = findall(xx->(-0.1<xx<0.1), P_y)
+P_y_near0 = P_y[inds]
+S_U_near0 = S_U[inds]
+q_U_near0 = q_U[inds]
+
+display_mat = [ real.(S_U_near0) real.(q_U_near0) ]
+display_labels = ["data: interpolation" "estimated component"]
+
+plot_handle = plot(P_y_near0, display_mat,
+labels = display_labels,
+title = "real part of data spectrum (shifted Discrete Fourier Transform)",
+xlabel = "ppm",
+ylabel = "real part of spectrum",
+xflip = true,
+linewidth = 2, legend = :topright, size = (1000,400))
+
+scatter!(P_y_near0, real.(S_U_near0), markershape = :xcross, label = "data point")
+display(plot_handle)
+
+```
+
+
+To help with choosing amplitude-related optimization bounds in the downstream algorithms, one might want to normalize the intensity of the data. One approach that assumes the 0 ppm reference compound is DSS is as follows:
+```julia; fig_cap="", echo=false
+# find closest U_y to ν_0ppm, then normalized according to S_U instead of q(blah freq)
+val, ind = findmin( abs.(U_y .- ν_0ppm) )
+Z = abs(S_U[ind])
+
+y = S_U ./ Z
+
+plot_handle = plot(P_y, abs.(y),
+title = "magnitude of normalized data spectrum s.t. 0ppm peak has complex magnitude 1",
+xlabel = "ppm",
+ylabel = "magnitude of spectrum",
+xflip = true,
+linewidth = 2, legend = :none, size = (1000,400))
+
+display(plot_handle)
+
+```

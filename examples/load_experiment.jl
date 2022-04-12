@@ -100,18 +100,24 @@ PyPlot.title("real part of data spectrum (shifted Discrete Fourier Transform)")
 
 ###normalized.
 
-# normalize by the 0 ppm resonance component's estimate.
-# Assumes the component has an α of 9, which corresponds to the 9 protons for DSS' 0ppm component.
-c = NMRDataSetup.evalcomplexLorentzian(ν_0ppm, 9.0, β_0ppm, λ_0ppm, 2*π*ν_0ppm)
-Z = q(ν_0ppm)/c
+# # by model: normalize by the 0 ppm resonance component's estimate. sensitive to frequency mis-alignment.
+# # Assumes the component has an α of 9, which corresponds to the 9 protons for DSS' 0ppm component.
+# c = NMRDataSetup.evalcomplexLorentzian(ν_0ppm, 9.0, β_0ppm, λ_0ppm, 2*π*ν_0ppm)
+# Z = q(ν_0ppm)/c
+
+# by data.
+# find closest U_y to ν_0ppm, then normalized according to S_U instead of q(blah freq)
+val, ind = findmin( abs.(U_y .- ν_0ppm) )
+Z = abs(S_U[ind])
+
 y = S_U ./ Z
 
 PyPlot.figure(fig_num)
 fig_num += 1
 
-PyPlot.plot(P_y, real.(y))
+PyPlot.plot(P_y, abs.(y))
 
 PyPlot.legend()
 PyPlot.xlabel("ppm")
-PyPlot.ylabel("real")
-PyPlot.title("real part of normalized data spectrum s.t. 0ppm peak has magnitude 1")
+PyPlot.ylabel("abs")
+PyPlot.title("magnitude of normalized data spectrum s.t. 0ppm peak has magnitude 1")
