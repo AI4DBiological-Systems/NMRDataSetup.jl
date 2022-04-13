@@ -76,7 +76,7 @@ SW = SW,
 ```
 
 Visualize real part of the spectrum of `s_t`, and overlay the estimated 0 ppm resonance component.
-```julia; fig_cap="", echo=false
+```julia; fig_cap=""
 
 ## visualize.
 hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
@@ -116,7 +116,7 @@ display(plot_handle)
 
 Try zooming in around the 0 ppm resonance component. Each data point is the discrete-Fourier transform (DFT) of the complex-valued NMR experiment data `s_t`.
 
-```julia; fig_cap="", echo=false
+```julia; fig_cap=""
 
 inds = findall(xx->(-0.1<xx<0.1), P_y)
 P_y_near0 = P_y[inds]
@@ -141,7 +141,7 @@ display(plot_handle)
 
 
 To help with choosing amplitude-related optimization bounds in the downstream algorithms, one might want to normalize the intensity of the data. One approach that assumes the 0 ppm reference compound is DSS is as follows:
-```julia; fig_cap="", echo=false
+```julia; fig_cap=""
 # find closest U_y to ν_0ppm, then normalized according to S_U instead of q(blah freq)
 val, ind = findmin( abs.(U_y .- ν_0ppm) )
 Z = abs(S_U[ind])
