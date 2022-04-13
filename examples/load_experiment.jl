@@ -16,8 +16,8 @@ PyPlot.matplotlib["rcParams"][:update](["font.size" => 22, "font.family" => "ser
 ### user inputs.
 
 save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments"
-project_name = "glucose-700"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/combination/BMRB-700/D-(+)-Glucose"
+project_name = "BMRB-glucose-700-20mM"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-700-20mM/D-(+)-Glucose"
 solvent_ppm_guess = 4.7
 solvent_window_ppm = 0.1
 

@@ -199,6 +199,98 @@ display(plot_handle)
 
 We now apply a similar procedure as above for a few experiments from NMRData.
 
+[NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-2mM/D-(+)-Glucose](https://github.com/AI4DBiological-Systems/NMRData/tree/main/experiments_1D1H/BMRB/similar_settings/BMRB-500-2mM/D-(%2B)-Glucose)
+Experiment was acquired with a 700 MHz Spectrometer.
+
+```julia; results="hidden", echo=false
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-2mM/D-(+)-Glucose"
+project_name = "BMRB-glucose-500-2mM" # project folder name within `save_dir` for this experiment.
+
+
+## load.
+s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0ppm,
+    results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent,
+    results_solvent = NMRDataSetup.loadspectrum(experiment_full_path;
+    solvent_ppm = solvent_ppm_guess,
+    solvent_window_ppm = solvent_window_ppm)
+
+## store.
+save_folder_path = joinpath(save_dir, project_name)
+isdir(save_folder_path) || mkpath(save_folder_path); # make save folder if it doesn't exist.
+
+save_path = joinpath(save_folder_path, "$(project_name).bson")
+BSON.bson(save_path, s_t = s_t, fs = fs, SW = SW, ν_0ppm = ν_0ppm, α_0ppm = α_0ppm, β_0ppm = β_0ppm, λ_0ppm = λ_0ppm)
+
+## visualize.
+hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
+ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)
+
+offset_Hz = ν_0ppm - (ppm2hzfunc(0.3)-ppm2hzfunc(0.0))
+
+N = length(s_t)
+DFT_s = fft(s_t)
+U_DFT, U_y, U_inds = NMRDataSetup.getwraparoundDFTfreqs(N, fs, offset_Hz)
+
+# shift the DFT so that around 0 ppm (around `offset_Hz` Hz`) appears first in the frequency positions.
+S_U = DFT_s[U_inds]
+P_y = hz2ppmfunc.(U_y)
+
+
+q = uu->NMRDataSetup.evalcomplexLorentzian(uu, α_0ppm, β_0ppm, λ_0ppm, 2*π*ν_0ppm)*fs
+q_U = q.(U_y)
+```
+
+```julia; echo=false
+# real.
+display_mat = [ real.(S_U) real.(q_U) ]
+display_labels = ["data" "estimated component"]
+
+default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
+tickfont = (12, :black))
+plot_handle = plot(P_y, display_mat,
+labels = display_labels,
+title = "Spectrum of experiment $project_name",
+xlabel = "ppm",
+ylabel = "real part of spectrum",
+xflip = true,
+linewidth = 2, legend = :topright, size = (1000,400))
+
+display(plot_handle)
+
+# imaginary.
+display_mat = [ imag.(S_U) imag.(q_U) ]
+display_labels = ["data" "estimated component"]
+
+default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
+tickfont = (12, :black))
+plot_handle = plot(P_y, display_mat,
+labels = display_labels,
+title = "Spectrum of experiment $project_name",
+xlabel = "ppm",
+ylabel = "imaginary part of spectrum",
+xflip = true,
+linewidth = 2, legend = :topright, size = (1000,400))
+
+display(plot_handle)
+
+# magnitude.
+display_mat = [ abs.(S_U) abs.(q_U) ]
+display_labels = ["data" "estimated component"]
+
+default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
+tickfont = (12, :black))
+plot_handle = plot(P_y, display_mat,
+labels = display_labels,
+title = "Spectrum of experiment $project_name",
+xlabel = "ppm",
+ylabel = "magnitude of spectrum",
+xflip = true,
+linewidth = 2, legend = :topright, size = (1000,400))
+
+display(plot_handle)
+
+```
+
 [NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-700-20mM/L-Serine](https://github.com/AI4DBiological-Systems/NMRData/tree/main/experiments_1D1H/BMRB/similar_settings/BMRB-700-20mM/L-Serine)
 Experiment was acquired with a 700 MHz Spectrometer.
 
@@ -291,97 +383,6 @@ display(plot_handle)
 
 ```
 
-[NMRData/tree/main/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1](https://github.com/AI4DBiological-Systems/NMRData/tree/main/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1)
-Although this experiment sample was dried, there is still a solvent-related signal.
-
-```julia; results="hidden", echo=false
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1"
-project_name = "NRC-4_amino_acid-Jan2022-1" # project folder name within `save_dir` for this experiment.
-
-
-## load.
-s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0ppm,
-    results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent,
-    results_solvent = NMRDataSetup.loadspectrum(experiment_full_path;
-    solvent_ppm = solvent_ppm_guess,
-    solvent_window_ppm = solvent_window_ppm)
-
-## store.
-save_folder_path = joinpath(save_dir, project_name)
-isdir(save_folder_path) || mkpath(save_folder_path); # make save folder if it doesn't exist.
-
-save_path = joinpath(save_folder_path, "$(project_name).bson")
-BSON.bson(save_path, s_t = s_t, fs = fs, SW = SW, ν_0ppm = ν_0ppm, α_0ppm = α_0ppm, β_0ppm = β_0ppm, λ_0ppm = λ_0ppm)
-
-## visualize.
-hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
-ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)
-
-offset_Hz = ν_0ppm - (ppm2hzfunc(0.3)-ppm2hzfunc(0.0))
-
-N = length(s_t)
-DFT_s = fft(s_t)
-U_DFT, U_y, U_inds = NMRDataSetup.getwraparoundDFTfreqs(N, fs, offset_Hz)
-
-# shift the DFT so that around 0 ppm (around `offset_Hz` Hz`) appears first in the frequency positions.
-S_U = DFT_s[U_inds]
-P_y = hz2ppmfunc.(U_y)
-
-
-q = uu->NMRDataSetup.evalcomplexLorentzian(uu, α_0ppm, β_0ppm, λ_0ppm, 2*π*ν_0ppm)*fs
-q_U = q.(U_y)
-```
-
-```julia; echo=false
-# real.
-display_mat = [ real.(S_U) real.(q_U) ]
-display_labels = ["data" "estimated component"]
-
-default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
-tickfont = (12, :black))
-plot_handle = plot(P_y, display_mat,
-labels = display_labels,
-title = "Spectrum of experiment $project_name",
-xlabel = "ppm",
-ylabel = "real part of spectrum",
-xflip = true,
-linewidth = 2, legend = :topright, size = (1000,400))
-
-display(plot_handle)
-
-# imaginary.
-display_mat = [ imag.(S_U) imag.(q_U) ]
-display_labels = ["data" "estimated component"]
-
-default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
-tickfont = (12, :black))
-plot_handle = plot(P_y, display_mat,
-labels = display_labels,
-title = "Spectrum of experiment $project_name",
-xlabel = "ppm",
-ylabel = "imaginary part of spectrum",
-xflip = true,
-linewidth = 2, legend = :topright, size = (1000,400))
-
-display(plot_handle)
-
-# magnitude.
-display_mat = [ abs.(S_U) abs.(q_U) ]
-display_labels = ["data" "estimated component"]
-
-default(titlefont = (16, "times"), legendfontsize = 14, guidefont = (16, :black),
-tickfont = (12, :black))
-plot_handle = plot(P_y, display_mat,
-labels = display_labels,
-title = "Spectrum of experiment $project_name",
-xlabel = "ppm",
-ylabel = "magnitude of spectrum",
-xflip = true,
-linewidth = 2, legend = :topright, size = (1000,400))
-
-display(plot_handle)
-
-```
 
 [NMRData/tree/main/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1](https://github.com/AI4DBiological-Systems/NMRData/tree/main/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1)
 Although this experiment sample was dried, there is still a solvent-related signal. 600 MHz spectrometer.
