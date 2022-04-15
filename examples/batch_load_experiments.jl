@@ -39,7 +39,7 @@ function loadbatchexperimentsinsubfolders(prefix_string::String, root_path::Stri
         save_folder_path = joinpath(save_dir, project_name)
         isdir(save_folder_path) || mkpath(save_folder_path); # make save folder if it doesn't exist.
 
-        save_path = joinpath(save_folder_path, "$(project_name).bson")
+        save_path = joinpath(save_folder_path, "experiment.bson")
         BSON.bson(save_path,
         s_t = s_t,
         fs = fs,

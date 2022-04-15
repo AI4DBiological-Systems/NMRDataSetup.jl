@@ -44,7 +44,7 @@ s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0
 save_folder_path = joinpath(save_dir, project_name)
 isdir(save_folder_path) || mkpath(save_folder_path); # make save folder if it doesn't exist.
 
-save_path = joinpath(save_folder_path, "$(project_name).bson")
+save_path = joinpath(save_folder_path, "experiment.bson")
 BSON.bson(save_path,
 s_t = s_t,
 fs = fs,

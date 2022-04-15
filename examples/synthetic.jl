@@ -55,7 +55,7 @@ s_t_set, ν_0ppm_set, fs_set, SW_set = NMRDataSetup.assemblemixture(paths; weigh
 save_folder_path = joinpath(save_dir, project_name)
 isdir(save_folder_path) || mkdir(save_folder_path); # make save folder if it doesn't exist.
 
-save_path = joinpath(save_folder_path, "$(project_name).bson")
+save_path = joinpath(save_folder_path, "experiment.bson")
 BSON.bson(save_path,
 s_t = s_t,
 molecule_names = target_names,
