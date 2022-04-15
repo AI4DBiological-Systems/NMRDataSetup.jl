@@ -20,12 +20,14 @@ solvent_ppm_guess = 4.7
 solvent_window_ppm = 0.1
 
 
-project_name = "NRC-glucose-2018"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/misc/glucose/Sep-25-2018"
+# project_name = "NRC-glucose-2018"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/misc/glucose/Sep-25-2018"
 
 # project_name = "NRC-dmem-2012"
 # experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/misc/dmem_medium/Oct-22-2012"
 
+project_name = "BMRB-600-100mM-D-(+)-Glucose"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/glucose-600-bmse000855_1"
 
 ### end inputs.
 
