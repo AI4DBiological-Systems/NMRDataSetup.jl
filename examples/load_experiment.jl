@@ -16,14 +16,22 @@ PyPlot.matplotlib["rcParams"][:update](["font.size" => 22, "font.family" => "ser
 ### user inputs.
 
 save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments"
-project_name = "BMRB-glucose-700-20mM"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-700-20mM/D-(+)-Glucose"
 solvent_ppm_guess = 4.7
 solvent_window_ppm = 0.1
+
+
+project_name = "NRC-glucose-2018"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/misc/glucose/Sep-25-2018"
+
+# project_name = "NRC-dmem-2012"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/misc/dmem_medium/Oct-22-2012"
+
 
 ### end inputs.
 
 ## load.
+isdir(save_dir) || mkdir(save_dir); # make save folder if it doesn't exist.
+
 s_t, S, hz2ppmfunc, ppm2hzfunc, ν_0ppm, fs, SW, α_0ppm, β_0ppm, λ_0ppm, Ω_0ppm,
     results_0ppm, dic, α_solvent, β_solvent, λ_solvent, Ω_solvent,
     results_solvent = NMRDataSetup.loadspectrum(experiment_full_path;
