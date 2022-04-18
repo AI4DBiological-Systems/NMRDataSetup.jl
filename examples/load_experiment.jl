@@ -29,6 +29,9 @@ solvent_window_ppm = 0.1
 project_name = "BMRB-600-100mM-D-(+)-Glucose"
 experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/glucose-600-bmse000855_1"
 
+# project_name = "NRC-4_amino_acid-Jan2022-1"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1"
+
 ### end inputs.
 
 ## load.

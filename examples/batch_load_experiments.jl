@@ -109,3 +109,13 @@ solvent_ppm_guess = 4.7 # in units ppm.
 solvent_window_ppm = 0.1 # in units ppm.
 ### end inputs.
 loadbatchexperimentsinsubfolders(prefix_string, root_path, save_dir, solvent_ppm_guess, solvent_window_ppm)
+
+### user inputs.
+prefix_string = "NRC-8_amino_acid-Jan2022" # the prefix string name that gets attached to each stored experiment.
+root_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_8_amino_acid_mixutre_Apr_2021" # the folder that contain the experiment folders that you want to load.
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments" # root path where the experiment BSON files will be stored.
+
+solvent_ppm_guess = 4.7 # in units ppm.
+solvent_window_ppm = 0.1 # in units ppm.
+### end inputs.
+loadbatchexperimentsinsubfolders(prefix_string, root_path, save_dir, solvent_ppm_guess, solvent_window_ppm)
