@@ -35,9 +35,34 @@ solvent_window_ppm = 0.1
 # project_name = "NRC-4_amino_acid-Jan2022-1"
 # experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1"
 
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "bmse000297_ethanol"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000297_ethanol"
+
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
+project_name = "D-(+)-Glucose"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/D-(+)-Glucose"
+
 save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
-project_name = "bmse000297_ethanol"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000297_ethanol"
+project_name = "bmse000038_glutamine"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000038_glutamine"
+
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+project_name = "gissmo_900_leucine"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine"
+
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+project_name = "gissmo_900_leucine_1"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine/1"
+
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+project_name = "bmse000867_serine"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000867_serine"
+
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
+project_name = "L-Isoleucine"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/L-Isoleucine"
+
 
 
 ### end inputs.
