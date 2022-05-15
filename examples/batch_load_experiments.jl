@@ -47,7 +47,8 @@ function loadbatchexperimentsinsubfolders(root_path::String, save_dir::String, s
         ν_0ppm = ν_0ppm,
         α_0ppm = α_0ppm,
         β_0ppm = β_0ppm,
-        λ_0ppm = λ_0ppm)
+        λ_0ppm = λ_0ppm,
+        dic = dic)
 
     end
 end

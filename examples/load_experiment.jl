@@ -31,39 +31,47 @@ solvent_window_ppm = 0.1
 # project_name = "D-(+)-Glucose"
 # experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/glucose-600-bmse000855_1"
 
-# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/NRC"
-# project_name = "NRC-4_amino_acid-Jan2022-1"
-# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1"
+save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/NRC"
+project_name = "NRC-4_amino_acid-Jan2022-1"
+experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/NRC/NRC_4_amino_acid_mixture_Jan_2022/1"
 
 # save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
 # project_name = "bmse000297_ethanol"
 # experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000297_ethanol"
 
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
-project_name = "D-(+)-Glucose"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/D-(+)-Glucose"
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
+# project_name = "D-(+)-Glucose"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/D-(+)-Glucose"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "bmse000038_glutamine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000038_glutamine"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "gissmo_900_leucine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "gissmo_900_leucine_1"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine/1"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "bmse000867_serine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000867_serine"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
+# project_name = "L-Isoleucine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/L-Isoleucine"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "bmse000860_valine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000860_valine"
+#
+# save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
+# project_name = "bmse000915_methionine"
+# experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000915_methionine"
 
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
-project_name = "bmse000038_glutamine"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000038_glutamine"
-
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
-project_name = "gissmo_900_leucine"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine"
-
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
-project_name = "gissmo_900_leucine_1"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/gissmo_900_leucine/1"
-
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/misc"
-project_name = "bmse000867_serine"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/misc/bmse000867_serine"
-
-save_dir = "/home/roy/MEGAsync/outputs/NMR/experiments/BMRB-500-100mM"
-project_name = "L-Isoleucine"
-experiment_full_path = "/home/roy/Documents/repo/NMRData/experiments_1D1H/BMRB/similar_settings/BMRB-500-100mM/L-Isoleucine"
-
-
+# we're on tyrosine.
 
 ### end inputs.
 
@@ -88,7 +96,8 @@ SW = SW,
 ν_0ppm = ν_0ppm,
 α_0ppm = α_0ppm,
 β_0ppm = β_0ppm,
-λ_0ppm = λ_0ppm)
+λ_0ppm = λ_0ppm,
+dic = dic)
 
 
 ## visualize.

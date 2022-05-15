@@ -64,7 +64,7 @@ end
         st_ind_default = 100,
         verbose_flag::Bool = false)
 
-Loads a Bruker 1D 1H NMR experiment. Uses the NMRGlue Python library. Estimates the 0 ppm and solvent resonance components. The solvent resonance component is estimated in the frequency interval `solvent_ppm` +/- `solvent_window_ppm`, in units ppm. 
+Loads a Bruker 1D 1H NMR experiment. Uses the NMRGlue Python library. Estimates the 0 ppm and solvent resonance components. The solvent resonance component is estimated in the frequency interval `solvent_ppm` +/- `solvent_window_ppm`, in units ppm.
 
 
 On a Linux terminal, run the following command if you don't have NMRGlue installed.
@@ -100,7 +100,7 @@ Therefore, the returned sampling frequency `fs` from loadspectrum() and the samp
 - `Ω_solvent`: The radial frequency parameter of the estimate resonance component for 0 ppm reference, in the free-induction decay model. In units Hz/(2*π).
 - `results_solvent`: The NLopt.jl optimization results for the estimation of the 0 ppm reference. Inspect this to see if the estimated parameters for the 0 ppm reference are reliable.
 , , , , ,
-    
+
 
 # Examples
 See load_experiment.jl in the /examples folder for an example.
@@ -140,8 +140,6 @@ function loadspectrum(full_path::String;
 
     O1 = dic["acqus"]["O1"]
     dic["acqus"]["NUC1"]
-
-    fs_dic = dic["acqus"]["SW_h"]
 
     CAR = O1*1.0
 
@@ -376,4 +374,3 @@ function getinitalguessreferencecompoundfreq(CAR::T, fs::T, SW::T) where T <: Re
 
     return ν0_initial, hz2ppmfunc0, ppm2hzfunc0
 end
-
