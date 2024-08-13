@@ -1,3 +1,6 @@
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
+
 """
     evalcomplexLorentzian(u, α, β::T, λ, Ω)::Complex{T} where T <: Real
 
@@ -63,7 +66,7 @@ function wrapfreqrange(U0, ν_begin::T, fs::T) where T <: Real
     @assert typeof(ind) == Int
     @assert ind <= N
 
-    out = Vector{T}(undef, N)
+    out = Memory{T}(undef, N)
     #out[1:ind] = U0[1:ind] .+ fs
     #out[ind+1:end] = U0[ind+1:end]
 
@@ -71,9 +74,13 @@ function wrapfreqrange(U0, ν_begin::T, fs::T) where T <: Real
     out[1:M] = U0[ind+1:end]
     out[M+1:end] = U0[1:ind] .+ fs
 
-    inds = collect(1:N)
-    inds[1:M] = collect(ind+1:N)
-    inds[M+1:end] = collect(1:ind)
+    inds = Memory{Int}(1:N)
+    inds[1:M] = Memory{Int}(ind+1:N)
+    inds[M+1:end] = Memory{Int}(1:ind)
+
+    #inds = collect(1:N)
+    #inds[1:M] = collect(ind+1:N)
+    #inds[M+1:end] = collect(1:ind)
 
     return out, inds
 end

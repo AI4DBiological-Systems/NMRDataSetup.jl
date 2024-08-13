@@ -1,3 +1,5 @@
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
 
 @kwdef struct SetupConfig{T}
     rescaled_max::T = convert(T, 10.0)
@@ -131,7 +133,7 @@ function setupBruker1Dspectrum(
     # # fit the 0 ppm and solvent singlets.
 
     # using O1 as ν_0ppm.
-    spectrum_O1 = getSpectrumData1D(s, settings; offset_ppm = offset_ppm)
+    spectrum_O1 = SpectrumData1D(s, settings; offset_ppm = offset_ppm)
 
     # estimate ν_0ppm_new
     p_O1, rel_error_O1 = fitsinglet(spectrum_O1, freq_ref_config)
@@ -159,7 +161,7 @@ function setupBruker1Dspectrum(
     end 
 
     # use ν_0ppm to redo compute spectrum data container.
-    spectrum = getSpectrumData1D(
+    spectrum = SpectrumData1D(
         s,
         ν_0ppm, SW, fs;
         offset_ppm = offset_ppm,

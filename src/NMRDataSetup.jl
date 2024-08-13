@@ -1,4 +1,6 @@
-__precompile__() # this module is safe to precompile
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
+
 module NMRDataSetup
 
 using LinearAlgebra
@@ -40,7 +42,6 @@ export
 
     # data spectrum for fitting.
     SpectrumData1D,
-    getSpectrumData1D,
 
     # fit singlet.
     FitSingletConfig,

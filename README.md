@@ -24,7 +24,7 @@ Add the custom registries for dependencies, and then add the package.
 using Pkg
 Pkg.Registry.add(RegistrySpec(url = "https://github.com/AI4DBiological-Systems/PublicJuliaRegistry"))
 
-pkg"add NMRDataSetup"
+Pkg.add("NMRDataSetup")
 ```
 
 You also need to add this custom public registry if you want to run the example in `/examples/`:
@@ -33,8 +33,14 @@ using Pkg
 Pkg.Registry.add(RegistrySpec(url = "https://github.com/RoyCCWang/RWPublicJuliaRegistry"))
 ```
 
-
 # Citation
 Our work is undergoing peer review. Please cite our ChemRxiv version if you use this software.
 [https://doi.org/10.26434/chemrxiv-2023-0s196](https://doi.org/10.26434/chemrxiv-2023-0s196)
 
+# License
+This project is licensed under the Mozilla Public License V2.0; see the LICENSE file for details. Individual source files may contain the following tag instead of the full license text:
+```
+SPDX-License-Identifier: MPL-2.0
+```
+
+Using SPDX enables machine processing of license information based on the SPDX License Identifiers and makes it easier for developers to see at a glance which license they are dealing with.

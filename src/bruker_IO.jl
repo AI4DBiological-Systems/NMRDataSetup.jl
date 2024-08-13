@@ -1,3 +1,5 @@
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
 
 function extractsetting(
     ::Type{T},
@@ -19,7 +21,7 @@ end
 
 # only for FID signals. Used for removing dead time at the start of the FID time series from Bruker spectrometers.
 function estimatechangepoint(
-    s::Vector{Complex{T}};
+    s::Memory{Complex{T}};
     threshold_factor::T = convert(T, 0.3), # trigger above 10 percent of max value.
     discard_factor::T = convert(T, 0.5), # discard 0.5*N extra samples
     verbose::Bool = true,
@@ -72,12 +74,38 @@ struct Bruker1D1HSettings{T} <: NMRSettings
 end
 
 # s is the offset/truncated and scaled version of s_data.
+# norm(data.s_data[data.offset_ind:end] .* data.scale_factor - data.s) this should be zero.
 struct Data1D{T <: AbstractFloat, ST <: NMRSettings}
-    s_data::Vector{Complex{T}}
+    s_data::Memory{Complex{T}}
     offset_ind::Int
     scale_factor::T
-    s::Vector{Complex{T}}
+    s::Memory{Complex{T}}
     settings::ST
+end
+
+
+"""
+    get_processed_fid(A::Data1D)
+
+Retursn:
+`s`: The truncated and scaled free-induction decay time series.
+
+`offset_ind`: The starting index from the unprocessed data, from which `s` was constructed from. Truncation was done to remove dead time.
+
+`scale_factor`: The scaling factor used to construct `s` from the unprocessed data.
+"""
+function get_processed_fid(A::Data1D)
+    return A.s, A.offset_ind, A.scale_factor
+end
+
+"""
+    get_unprocessed_fid(A::Data1D)
+
+Retursn:
+`s_data`: The unprocessed free-induction decay time series.
+"""
+function get_unprocessed_fid(A::Data1D)
+    return A.s_data
 end
 
 # front end.
@@ -118,7 +146,8 @@ function loadBruker(
         data_binary .= ntoh.(data_raw)
     end
 
-    s_data = convert(Vector{Complex{T}}, data_binary)
+    #s_data = convert(Vector{Complex{T}}, data_binary)
+    s_data = convert(Memory{Complex{T}}, data_binary)
 
     #@show length(s_data)
     if length(s_data)*2 != TD
@@ -140,10 +169,13 @@ function loadBruker(
     end
     
     # z is the unscaled version of s.
-    z, n0 = NMRDataSetup.estimatechangepoint(s_data; verbose = true)
+    z, n0 = estimatechangepoint(s_data; verbose = true)
 
     scale_factor =rescaled_max/maximum( abs(z[n]) for n in eachindex(z) )
-    s = collect( convert(Complex{T}, z[i]) * scale_factor for i in eachindex(z))
+    s = Memory{Complex{T}}(undef, length(z))
+    for i in eachindex(s, z)
+        s[i] = convert(Complex{T}, z[i]) * scale_factor
+    end
 
     return Data1D(s_data, n0, scale_factor, s, Bruker1D1HSettings(TD, SW, SFO1, O1, fs_acq))
 end

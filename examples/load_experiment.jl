@@ -1,8 +1,15 @@
 
-include("a.jl")
 
 import Random
 Random.seed!(25)
+
+using LinearAlgebra
+using FFTW
+using Printf
+
+import PythonPlot as PLT # Pkg.add("PythonPlot") if you don't have this installed.
+import NMRDataSetup as DSU
+
 
 fig_num = 1
 PLT.close("all")
@@ -12,12 +19,7 @@ PLT.close("all")
 T = Float64
 
 # select the experiment you want to load.
-root_data_path = DS.getdatapath(DS.NMR2023()) # coupling values data repository root path
-experiment_root_folder = joinpath(root_data_path, "experiments_1D1H")
-experiment_full_path = joinpath(
-    homedir(),
-    joinpath(experiment_root_folder, "similar_settings/BMRB-700-20mM/Agmatine"),
-)
+experiment_full_path = joinpath(pwd(), "data", "DMEM")
 
 # # Provide configurations.
 # We need configs for fitting singlets and for signal conditioning.
@@ -26,31 +28,31 @@ experiment_full_path = joinpath(
 freq_ref_config = DSU.FitSingletConfig{T}(
     
     frequency_center_ppm = zero(T), # the singlet is at 0 ppm.
-    frequency_radius_ppm = convert(T, 0.3),
+    frequency_radius_ppm = T(0.3),
 
     # smaller λ means sharper line shape at the resonance frequency, less heavy tails.
-    λ_lb = convert(T, 0.2),
-    λ_ub = convert(T, 7.0),
+    λ_lb = T(0.2),
+    λ_ub = T(7.0),
 )
 
 # solvent singlet component fitting.
 # We recommend pasing in `nothing` to disable fitting the solvent unless you know the solvent is the only resonance component within the specified ppm window.
 solvent_config = DSU.FitSingletConfig{T}(
 
-    frequency_center_ppm = convert(T, 4.75), # in this example, we assume the solvent is between 4.75 - 0.15 to 4.75 + 0.15 ppm.
-    frequency_radius_ppm = convert(T, 0.15),
+    frequency_center_ppm = T(4.9), # in this example, we assume the solvent is between 4.75 - 0.15 to 4.75 + 0.15 ppm.
+    frequency_radius_ppm = T(0.2),
     
     # smaller λ means sharper line shape at the resonance frequency, less heavy tails.
-    λ_lb = convert(T, 1e-3),
-    λ_ub = convert(T, 20.0),
+    λ_lb = T(1e-3),
+    λ_ub = T(20.0),
 )
 #solvent_config = nothing # uncomment this if you don't want to fit the solvent.
 
 # For the data rescaling, frequency wrap-around so that we have a monotonic increasing frequency range that corresponds to -offset_ppm to SW-offset_ppm, and truncation of dead time from the FID data.
 config = DSU.SetupConfig{T}(
-    rescaled_max = convert(T, 10.0),
-    max_CAR_ν_0ppm_difference_ppm = convert(T, 0.4), # used to assess whether the experiment is missing (or has a very low intensity) 0 ppm peak.
-    offset_ppm = convert(T, 0.5),
+    rescaled_max = T(10.0),
+    max_CAR_ν_0ppm_difference_ppm = T(0.4), # used to assess whether the experiment is missing (or has a very low intensity) 0 ppm peak.
+    offset_ppm = T(0.5),
     FID_name = "fid",
     settings_file_name = "acqu",
 )
@@ -65,11 +67,23 @@ output = DSU.setupBruker1Dspectrum(
 )
 data, spectrum, singlet_0ppm, singlet_solvent = DSU.unpackcontainer(output)
 
+# This does not have dead time removal nor magnitude scaling.
+unprocessed_fid = DSU.get_unprocessed_fid(data)
+
+# This is a scaled and truncated version of `unprocessed_fid`. Truncation so that dead-time should be removed. Manually inspect and process further if dead-time is not removed.
+s, offset_index, s_scale_factor = DSU.get_processed_fid(data)
+
+# Sanity-check.
+@assert norm(unprocessed_fid[offset_index:end] .* s_scale_factor -s) < eps(T)*100
+
 # # Unpack.
 # frequency in Hz.
 
-# frequency of DFT, wrapped-around frequency, wrapped-around ppm, wrapped-around (wrt frequency) and scaled (wrt magnitude) DFT spectrum.
-U_DFT, U_y, P_y, y = spectrum.U_DFT, spectrum.U_y, spectrum.P_y, spectrum.y
+# frequencies that correspond to the DFT of s, i.e., `fft(s)`.
+U_DFT = DSU.get_DFT_freqs(spectrum)
+
+# wrapped-around frequency, wrapped-around ppm, wrapped-around (wrt frequency) and scaled (wrt magnitude) DFT spectrum.
+U_y, P_y, y = DSU.get_wraparound_spectrum(spectrum)
 
 # set up conversion
 freq_params = DSU.FrequencyConversionParameters(output)
@@ -77,8 +91,12 @@ hz2ppmfunc = uu->DSU.hz2ppm(uu, freq_params)
 ppm2hzfunc = pp->DSU.ppm2hz(pp, freq_params)
 
 # sanity-check
-@assert norm(U_y - ppm2hzfunc.(P_y), convert(T, Inf)) < convert(T, 1e-8)
-@assert norm(P_y - hz2ppmfunc.(U_y), convert(T, Inf)) < convert(T, 1e-8)
+@assert norm(U_y - ppm2hzfunc.(P_y))/norm(U_y) < eps(T)*100
+@assert norm(P_y - hz2ppmfunc.(U_y))/norm(P_y) < eps(T)*100
+
+perm_inds = DSU.get_wraparound_permutation(spectrum)
+y_scaling_factor = DSU.get_scaling_factor(spectrum)
+@assert norm((fft(s) .* y_scaling_factor)[perm_inds] - y)/norm(fft(s)) < eps(T)*100
 
 # The FID parameters of both of the singlets fitted.
 p_0ppm = [singlet_0ppm.α; singlet_0ppm.β; singlet_0ppm.λ; singlet_0ppm.Ω]
@@ -121,7 +139,7 @@ PLT.legend()
 inds = findall(xx->(P_0ppm_lb < xx < P_0ppm_ub), P_y)
 y_display = y[inds]
 P_display = P_y[inds]
-U_rad_display = U_y[inds] .* convert(T, 2*π)
+U_rad_display = U_y[inds] .* T(2*π)
 
 q = uu->DSU.evalCL(uu, p_0ppm...)
 q_display = q.(U_rad_display)
@@ -171,7 +189,7 @@ if !isnothing(solvent_config)
     inds = findall(xx->(P_solvent_lb < xx < P_solvent_ub), P_y)
     y_display = y[inds]
     P_display = P_y[inds]
-    U_rad_display = U_y[inds] .* convert(T, 2*π)
+    U_rad_display = U_y[inds] .* T(2*π)
 
     q = uu->DSU.evalCL(uu, p_solvent...)
     q_display = q.(U_rad_display)

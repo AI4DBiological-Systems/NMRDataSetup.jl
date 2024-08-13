@@ -1,3 +1,5 @@
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
 
 ############ Lorentzians
 # complex Lorentzian (CL), absorption Lorentzian (AL), dispersive Lorentzian (DL)
@@ -44,16 +46,16 @@ function evalDL(u, α, β::T, λ, Ω)::Complex{T} where T <: Real
 end
 
 # cost function.This is the l-2 cost, squared.
-function evall2costsq(
-    p::Vector{T2},
-    y::Vector{Complex{T}},
+function eval_quadratic_cost(
+    p::Union{Vector{T2}, Memory{T2}},
+    y::Memory{Complex{T}},
     U_rad,
-    )::T2 where {T <: Real, T2 <: Real}
+    ) where {T <: Real, T2 <: Real}
 
     cost = zero(T2)
-    for m in eachindex(U_rad)
+    for m in eachindex(U_rad, y)
 
-        qr, qi = evalCLsplit(U_rad[m], p...)
+        qr, qi = evalCLsplit(U_rad[m], p[1], p[2], p[3], p[4])
 
         cost += (qr-real(y[m]))^2 + (qi-imag(y[m]))^2
     end
@@ -61,57 +63,74 @@ function evall2costsq(
     return cost
 end
 
-
-
-
+# we have  norm(fft(data.s) .* spectrum.scale_factor), norm( spectrum.y) is the same.
 struct SpectrumData1D{T <: AbstractFloat}
     U_DFT::LinRange{T,Int}
-    U_y::Vector{T}
-    P_y::Vector{T}
-    y::Vector{Complex{T}}
+    U_y::Memory{T}
+    P_y::Memory{T}
+    y::Memory{Complex{T}}
     
     # for reference.
-    DFT2y_inds::Vector{Int}
+    DFT2y_inds::Memory{Int}
     scale_factor::T
+    
+    function SpectrumData1D(
+        s::Memory{Complex{T}},
+        settings::Bruker1D1HSettings{T};
+        offset_ppm = convert(T, 0.5),
+        ) where T <: AbstractFloat
+        
+        fs, O1, SW = settings.fs, settings.O1, settings.SW
+        ν_0ppm = fs - O1
+        
+        return SpectrumData1D(s, ν_0ppm, SW, fs; offset_ppm = offset_ppm)
+    end
+
+    function SpectrumData1D(
+        s_t::Memory{Complex{T}},
+        ν_0ppm::T,
+        SW::T,
+        fs::T;
+        offset_ppm = convert(T, 0.5),
+        ) where T <: AbstractFloat
+
+        hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
+        ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)
+
+        offset_Hz = ν_0ppm - (ppm2hzfunc(offset_ppm)-ppm2hzfunc(zero(T)))
+
+        # # get the data spectrum for fitting.
+        tmp = Memory{Complex{T}}(fft(s_t)) #./ length(s_t))
+        DFT_s_scaled, scale_factor = scaletimeseries(tmp)
+        #scale_factor = scale_factor/length(s_t)
+
+        U_DFT, U_y, DFT2y_inds = getwraparoundDFTfreqs(length(s_t), fs, offset_Hz)
+        P_y = map(hz2ppmfunc, U_y)
+
+        # reorder to get the spectrum for fitting.
+        y = DFT_s_scaled[DFT2y_inds]
+
+        #y2DFT_inds = getinversemap(DFT2y_inds)
+
+        return new{T}(U_DFT, U_y, P_y, y, DFT2y_inds, scale_factor)
+    end
 end
 
-function getSpectrumData1D(
-    s::Vector{Complex{T}},
-    settings::Bruker1D1HSettings{T};
-    offset_ppm = convert(T, 0.5),
-    ) where T <: AbstractFloat
-    
-    fs, O1, SW = settings.fs, settings.O1, settings.SW
-    ν_0ppm = fs - O1
-    
-    return getSpectrumData1D(s, ν_0ppm, SW, fs; offset_ppm = offset_ppm)
+# such that the ppm is continuous, from offset_ppm onwards.
+function get_wraparound_spectrum(A::SpectrumData1D)
+    return A.U_y, A.P_y, A.y
 end
 
-function getSpectrumData1D(
-    s_t::Vector{Complex{T}},
-    ν_0ppm::T,
-    SW::T,
-    fs::T;
-    offset_ppm = convert(T, 0.5),
-    ) where T <: AbstractFloat
+function get_DFT_freqs(A::SpectrumData1D)
+    return A.U_DFT
+end
 
-    hz2ppmfunc = uu->(uu - ν_0ppm)*SW/fs
-    ppm2hzfunc = pp->(ν_0ppm + pp*fs/SW)
+function get_wraparound_permutation(A::SpectrumData1D)
+    return A.DFT2y_inds
+end
 
-    offset_Hz = ν_0ppm - (ppm2hzfunc(offset_ppm)-ppm2hzfunc(zero(T)))
-
-    # # get the data spectrum for fitting.
-    DFT_s_scaled, scale_factor = scaletimeseries(fft(s_t)/length(s_t))
-
-    U_DFT, U_y, DFT2y_inds = getwraparoundDFTfreqs(length(s_t), fs, offset_Hz)
-    P_y = hz2ppmfunc.(U_y)
-
-    # reorder to get the spectrum for fitting.
-    y = DFT_s_scaled[DFT2y_inds]
-
-    #y2DFT_inds = getinversemap(DFT2y_inds)
-
-    return SpectrumData1D(U_DFT, U_y, P_y, y, DFT2y_inds, scale_factor)
+function get_scaling_factor(A::SpectrumData1D)
+    return A.scale_factor
 end
 
 @kwdef struct FitSingletConfig{T}
@@ -168,11 +187,11 @@ function fitsinglet(
 
     y_cost = y[inds]
     cost_scale_factor = maximum(abs.(y))
-    y_cost = y_cost ./ cost_scale_factor # noramlize so that we can pick grad_tol easier for the optim problem.
-
+    y_cost = map(xx->xx/cost_scale_factor, y_cost) # noramlize so that we can pick grad_tol easier for the optim problem.
+    
     P_cost = P_y[inds]
     U_cost = U_y[inds]
-
+    
     # baseline.
     real_itp = uu->evallinearitp(U_cost[begin], real(y_cost[begin]), U_cost[end], real(y_cost[end]), uu)
     baseline_real_Ω0 = real_itp(Ω0_Hz)
@@ -181,10 +200,13 @@ function fitsinglet(
     baseline_imag_Ω0 = imag_itp(Ω0_Hz)
 
     baseline_abs_Ω0 = abs(Complex(baseline_real_Ω0, baseline_imag_Ω0))
-    #@show baseline_abs_Ω0
     baseline_real = real_itp.(U_cost)
     baseline_imag = imag_itp.(U_cost)
-    baseline = Complex.(baseline_real, baseline_imag)
+
+    baseline = Memory{Complex{T}}(undef, length(baseline_real))
+    for i in eachindex(baseline, baseline_real, baseline_imag)
+        baseline[i] = Complex(baseline_real[i], baseline_imag[i])
+    end
 
     # Check if there even a strong enough signal for the singlet in the interval we're looking at.
     dynamic_range = (max_abs_y_CAR - baseline_abs_Ω0)/max_abs_y_CAR
@@ -197,8 +219,11 @@ function fitsinglet(
     end
 
     # verical adjustment to get the samples for fitting.
-    y_cost_adj = y_cost - baseline
-    U_rad_cost = U_cost .* twopi(T)
+    y_cost_adj = similar(y_cost)
+    y_cost_adj .= y_cost .- baseline
+    
+    U_rad_cost = similar(U_cost)
+    U_rad_cost .= U_cost .* twopi(T)
 
     # # Initial iterate.
     α0 = maximum(abs.(y_cost_adj))
@@ -206,7 +231,7 @@ function fitsinglet(
 
 
     # cost function. TODO implement the analytical derivatives.
-    f = pp->evall2costsq(pp, y_cost_adj, U_rad_cost)
+    f = pp->eval_quadratic_cost(pp, y_cost_adj, U_rad_cost)
     df! = (gg,pp)->ForwardDiff.gradient!(gg, f, pp)
     
     # bounds.
@@ -280,7 +305,8 @@ function fitsinglet(
     return p_star, rel_error
 end
 
-# TODO remove this once analytical derivatives are implemented for evall2costsq().
+
+# TODO remove this once analytical derivatives are implemented for eval_quadratic_cost().
 function evalfdf!(g::Vector{T}, p::Vector{T}, f, df!) where T <: AbstractFloat
     df!(g, p)
     return f(p)
@@ -318,4 +344,3 @@ function runCGbatch(
 
     return rets, ind
 end
-

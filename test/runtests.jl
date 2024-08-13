@@ -1,6 +1,8 @@
+# Copyright © 2022 Roy Chih Chung Wang <roy.c.c.wang@proton.me>
+# SPDX-License-Identifier: MPL-2.0
 
-include("../src/NMRDataSetup.jl")
-import .NMRDataSetup
+#include("../src/NMRDataSetup.jl")
+import NMRDataSetup
 
 using LinearAlgebra
 using FFTW
