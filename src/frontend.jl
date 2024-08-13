@@ -15,21 +15,41 @@ struct SingletFIDParameters{T <: AbstractFloat}
     λ::T
     Ω::T # in radians.
     relative_error::T
+
+    # default to an invalid singlet.
+    function SingletFIDParameters(::Type{T}) where T <: AbstractFloat
+        return new{T}(T(NaN), T(NaN), T(NaN), T(NaN), T(NaN))
+    end
+
+    function SingletFIDParameters(p::Union{Vector{T}, Memory{T}}, RE::T) where T <: AbstractFloat
+        length(p) == 4 || error("There must only be 4 entries in the input.")
+
+        # make sure α is positive.
+        tmp = p[1]*cis(p[2])
+        α, β = abs(tmp), angle(tmp)
+
+        return new{T}(α, β, p[3], p[4], RE)
+    end
 end
 
-# default to an invalid singlet.
-function SingletFIDParameters(::Type{T})::SingletFIDParameters{T} where T <: AbstractFloat
-    return SingletFIDParameters(convert(T, NaN), convert(T, NaN), convert(T, NaN), convert(T, NaN), convert(T, NaN))
+function get_T2_reciprocal(A::SingletFIDParameters)
+    return A.λ
 end
 
-function SingletFIDParameters(p::Vector{T}, RE::T)::SingletFIDParameters{T} where T <: AbstractFloat
-    @assert length(p) == 4
+function get_resonance_frequency_hz(A::SingletFIDParameters{T}) where T <: AbstractFloat
+    return A.Ω / T(2*π)
+end
 
-    # make sure α is positive.
-    tmp = p[1]*cis(p[2])
-    α, β = abs(tmp), angle(tmp)
+function get_resonance_intensity(A::SingletFIDParameters)
+    return A.α
+end
 
-    return SingletFIDParameters(α, β, p[3], p[4], RE)
+function get_resonance_phase(A::SingletFIDParameters)
+    return A.β
+end
+
+function get_fit_rel_error(A::SingletFIDParameters)
+    return A.relative_error
 end
 
 function isvalidsinglet(s::SingletFIDParameters{T}) where T <: AbstractFloat

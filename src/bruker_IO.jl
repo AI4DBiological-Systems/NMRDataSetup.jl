@@ -64,6 +64,7 @@ function estimatechangepoint(
 end
 
 abstract type NMRSettings end
+# needs to implement the following methods: get_spectral_width, get_sampling_frequency
 
 struct Bruker1D1HSettings{T} <: NMRSettings
     TD::Int
@@ -73,6 +74,15 @@ struct Bruker1D1HSettings{T} <: NMRSettings
     fs::T
 end
 
+function get_spectral_width(A::Bruker1D1HSettings)
+    return A.SW
+end
+
+function get_sampling_frequency(A::Bruker1D1HSettings)
+    return A.fs
+end
+
+
 # s is the offset/truncated and scaled version of s_data.
 # norm(data.s_data[data.offset_ind:end] .* data.scale_factor - data.s) this should be zero.
 struct Data1D{T <: AbstractFloat, ST <: NMRSettings}
@@ -81,6 +91,14 @@ struct Data1D{T <: AbstractFloat, ST <: NMRSettings}
     scale_factor::T
     s::Memory{Complex{T}}
     settings::ST
+end
+
+function get_spectral_width(A::Data1D)
+    return get_spectral_width(A.settings)
+end
+
+function get_sampling_frequency(A::Data1D)
+    return get_sampling_frequency(A.settings)
 end
 
 
